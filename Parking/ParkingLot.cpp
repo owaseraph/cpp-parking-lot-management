@@ -2,6 +2,8 @@
 #define PARKINGLOT_CPP
 #include "ParkingLot.h"
 #include <stdexcept>
+#include <utility>
+#include <algorithm>
 #include <iostream>
 
 namespace Parking{
@@ -15,7 +17,7 @@ namespace Parking{
     }
 
     std::size_t ParkingLot::getAvailableSpots() const{
-        size_t count=0;
+        std::size_t count=0;
         for(const auto& spot:spots){
             if(!spot.isOccupied()){
                 count++;
@@ -33,36 +35,49 @@ namespace Parking{
         return nullptr;
     }
 
-    void ParkingLot::parkVehicle(Vehicles::Vehicle& newVehicle){
-        for(const auto& spot: spots){
-            if(spot.isOccupied()){
-                if(spot.getVehicle()->getLicensePlate()==newVehicle.getLicensePlate()){
-                    throw std::logic_error("This vehicle is already parked in this lot");
-                }
+    void ParkingLot::parkVehicle(std::unique_ptr<Vehicles::Vehicle>&& newVehicle){
+        if(!newVehicle){
+            throw std::invalid_argument("Invalid vehicle");
+        }
+        for(const auto& parkedVehicle: vehicles){
+            if(parkedVehicle->getLicensePlate()==newVehicle->getLicensePlate()){
+                throw std::logic_error("This vehicle is already parked in this lot");
             }
         }
         ParkingSpot* parkSpot = findAvailableSpot();
         if(parkSpot==nullptr){
             throw std::logic_error("Parking lot is full");
         }
-        parkSpot->parkVehicle(newVehicle);
+        Vehicles::Vehicle* vehiclePtr = newVehicle.get();
+        vehicles.push_back(std::move(newVehicle));
+        parkSpot->parkVehicle(*vehiclePtr);
     }
 
     void ParkingLot::removeVehicle(const std::string& licensePlate){
-        for(auto& spot: spots){
-            if(spot.isOccupied()){
-                if(spot.getVehicle()->getLicensePlate()==licensePlate){
-                    spot.removeVehicle();
-                    return;
-                }
+        const auto it = std::find_if(
+            vehicles.begin(), 
+            vehicles.end(), 
+            [&licensePlate](const auto& vehicle){
+                return vehicle->getLicensePlate() == licensePlate;
+            }
+        );
+        if(it==vehicles.end()){
+            throw std::logic_error("This vehicle is not parked in this lot");
+        }
+        Vehicles::Vehicle* vehiclePtr = it->get(); 
+        for(auto& spot : spots){
+            if(spot.getVehicle() == vehiclePtr){
+                spot.removeVehicle();
+                break;
             }
         }
-        throw std::logic_error("This vehicle is not parked in this lot");
+        vehicles.erase(it);
+
     }
 
     void ParkingLot::displayParkingStatus() const{
         std::cout<<"========== PARKING STATUS =========="<<"\n";
-        for(auto& spot: spots){  
+        for(const auto& spot: spots){  
             std::cout<<"Spot "<<spot.getSpotID()<<": "<<(spot.isOccupied() ? "Occupied":"Available")<<"\n";
         }
         std::cout<<"\nAvailable spots: "<<ParkingLot::getAvailableSpots()<<"\n";
