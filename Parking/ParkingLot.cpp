@@ -5,13 +5,14 @@
 #include <utility>
 #include <algorithm>
 #include <iostream>
+#include <chrono>
 
 namespace Parking{
-    ParkingLot::ParkingLot(int numberOfLots){
-        if(numberOfLots<=0){
+    ParkingLot::ParkingLot(int numberOfSpots){
+        if(numberOfSpots<=0){
             throw std::invalid_argument("Invalid number of lots");
         }
-        for(int i=1;i<=numberOfLots;i++){
+        for(int i=1;i<=numberOfSpots;i++){
             this->spots.emplace_back(i);
         }
     }
@@ -35,7 +36,7 @@ namespace Parking{
         return nullptr;
     }
 
-    void ParkingLot::parkVehicle(std::unique_ptr<Vehicles::Vehicle>&& newVehicle){
+    ParkingTicket ParkingLot::parkVehicle(std::unique_ptr<Vehicles::Vehicle>&& newVehicle){
         if(!newVehicle){
             throw std::invalid_argument("Invalid vehicle");
         }
@@ -48,9 +49,19 @@ namespace Parking{
         if(parkSpot==nullptr){
             throw std::logic_error("Parking lot is full");
         }
+
+
+        //create a ParkingTicket entity to park the car and get issued an ID
+        ParkingTicket ticket(
+            nextTicketID,
+            newVehicle->getLicensePlate(),
+            parkSpot->getSpotID(),
+            std::chrono::system_clock::now());
         Vehicles::Vehicle* vehiclePtr = newVehicle.get();
         vehicles.push_back(std::move(newVehicle));
         parkSpot->parkVehicle(*vehiclePtr);
+        ++nextTicketID;
+        return ticket;
     }
 
     void ParkingLot::removeVehicle(const std::string& licensePlate){

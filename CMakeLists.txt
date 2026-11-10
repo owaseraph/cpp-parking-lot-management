@@ -14,6 +14,7 @@ add_library(ParkingCore
     Vehicles/Motorcycle.cpp
     Parking/ParkingSpot.cpp
     Parking/ParkingLot.cpp
+    Parking/ParkingTicket.cpp
 )
 
 target_include_directories(ParkingCore PUBLIC

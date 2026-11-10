@@ -4,78 +4,23 @@ int main() {
     try {
         // Create a parking lot with 2 spots
         Parking::ParkingLot lot(2);
+        auto ticket1 = lot.parkVehicle(
+            std::make_unique<Vehicles::Car>("CJ-10-ABC"));
 
-        std::cout << "\n--- INITIAL PARKING STATUS ---\n";
-        lot.displayParkingStatus();
-
-        // Create and park vehicles
-        lot.parkVehicle(
-            std::make_unique<Vehicles::Car>("CJ-10-ABC")
+        auto ticket2 = lot.parkVehicle(
+            std::make_unique<Vehicles::Motorcycle>("CJ-69-SEX")
         );
 
-        lot.parkVehicle(
-            std::make_unique<Vehicles::Motorcycle>("CJ-20-XYZ")
-        );
+        std::cout << "Ticket ID: " << ticket1.getTicketID() << '\n';
+        std::cout << "License plate: " << ticket1.getLicensePlate() << '\n';
+        std::cout << "Spot ID: " << ticket1.getSpotID() << '\n';
 
-        std::cout << "\n--- AFTER PARKING TWO VEHICLES ---\n";
-        lot.displayParkingStatus();
-
-        // TEST 1: Try parking a duplicate vehicle
-        std::cout << "\n--- TEST 1: DUPLICATE VEHICLE ---\n";
-        try {
-            lot.parkVehicle(
-                std::make_unique<Vehicles::Car>("CJ-10-ABC")
-            );
-        }
-        catch (const std::exception& e) {
-            std::cout << "Expected error: " << e.what() << '\n';
-        }
-
-        // TEST 2: Try parking when the lot is full
-        std::cout << "\n--- TEST 2: PARKING LOT FULL ---\n";
-        try {
-            lot.parkVehicle(
-                std::make_unique<Vehicles::Car>("CJ-30-DEF")
-            );
-        }
-        catch (const std::exception& e) {
-            std::cout << "Expected error: " << e.what() << '\n';
-        }
-
-        // TEST 3: Remove an existing vehicle
-        std::cout << "\n--- TEST 3: REMOVE VEHICLE ---\n";
-        lot.removeVehicle("CJ-10-ABC");
-        lot.displayParkingStatus();
-
-        // TEST 4: Try removing a nonexistent vehicle
-        std::cout << "\n--- TEST 4: REMOVE NONEXISTENT VEHICLE ---\n";
-        try {
-            lot.removeVehicle("CJ-99-XXX");
-        }
-        catch (const std::exception& e) {
-            std::cout << "Expected error: " << e.what() << '\n';
-        }
-
-        // TEST 5: Try removing the same vehicle again
-        std::cout << "\n--- TEST 5: REMOVE VEHICLE TWICE ---\n";
-        try {
-            lot.removeVehicle("CJ-10-ABC");
-        }
-        catch (const std::exception& e) {
-            std::cout << "Expected error: " << e.what() << '\n';
-        }
-
-        // TEST 6: Verify that the freed spot can be reused
-        std::cout << "\n--- TEST 6: REUSE AVAILABLE SPOT ---\n";
-        lot.parkVehicle(
-            std::make_unique<Vehicles::Car>("CJ-30-DEF")
-        );
-        lot.displayParkingStatus();
+        std::cout << "Ticket ID: " << ticket2.getTicketID() << '\n';
+        std::cout << "License plate: " << ticket2.getLicensePlate() << '\n';
+        std::cout << "Spot ID: " << ticket2.getSpotID() << '\n';
     }
-    catch (const std::exception& e) {
-        std::cerr << "Unexpected error: " << e.what() << '\n';
-        return 1;
+    catch(std::exception& e){
+        std::cerr<<"Error: "<<e.what()<<"\n";
     }
-
     return 0;
 }

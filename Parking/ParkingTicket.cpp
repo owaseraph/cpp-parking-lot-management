@@ -1,6 +1,6 @@
 #ifndef _PARKINGTICKET_CPP
 #define _PARKINGTICKET_CPP
-
+#include <algorithm>
 #include "ParkingTicket.h"
 
 namespace Parking{
