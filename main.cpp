@@ -1,25 +1,26 @@
 #include "include.hpp"
+
 int main() {
-
     try {
+        // Create a parking lot with 2 spots
         Parking::ParkingLot lot(2);
+        auto ticket1 = lot.parkVehicle(
+            std::make_unique<Vehicles::Car>("CJ-10-ABC"));
 
-        Vehicles::Car car1("CJ-10-ABC");
-        Vehicles::Motorcycle bike1("CJ-20-XYZ");
-        Vehicles::Car car2("CJ-30-DEF");
+        auto ticket2 = lot.parkVehicle(
+            std::make_unique<Vehicles::Motorcycle>("CJ-69-SEX")
+        );
 
-        lot.parkVehicle(car1);
-        lot.parkVehicle(bike1);
+        std::cout << "Ticket ID: " << ticket1.getTicketID() << '\n';
+        std::cout << "License plate: " << ticket1.getLicensePlate() << '\n';
+        std::cout << "Spot ID: " << ticket1.getSpotID() << '\n';
 
-        lot.displayParkingStatus();
-
-        // Should throw: duplicate vehicle
-        lot.parkVehicle(car1);
-
+        std::cout << "Ticket ID: " << ticket2.getTicketID() << '\n';
+        std::cout << "License plate: " << ticket2.getLicensePlate() << '\n';
+        std::cout << "Spot ID: " << ticket2.getSpotID() << '\n';
     }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << '\n';
+    catch(std::exception& e){
+        std::cerr<<"Error: "<<e.what()<<"\n";
     }
-
     return 0;
 }
