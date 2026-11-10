@@ -10,8 +10,11 @@
 namespace Parking{
     ParkingLot::ParkingLot(int numberOfSpots){
         if(numberOfSpots<=0){
-            throw std::invalid_argument("Invalid number of lots");
+            throw std::invalid_argument("Invalid number of spots");
         }
+        vehicles.reserve(numberOfSpots);
+        activeTickets.reserve(numberOfSpots);
+        spots.reserve(numberOfSpots);
         for(int i=1;i<=numberOfSpots;i++){
             this->spots.emplace_back(i);
         }
@@ -49,8 +52,6 @@ namespace Parking{
         if(parkSpot==nullptr){
             throw std::logic_error("Parking lot is full");
         }
-
-
         //create a ParkingTicket entity to park the car and get issued an ID
         ParkingTicket ticket(
             nextTicketID,
@@ -58,32 +59,67 @@ namespace Parking{
             parkSpot->getSpotID(),
             std::chrono::system_clock::now());
         Vehicles::Vehicle* vehiclePtr = newVehicle.get();
+        activeTickets.push_back(ticket);
         vehicles.push_back(std::move(newVehicle));
         parkSpot->parkVehicle(*vehiclePtr);
         ++nextTicketID;
         return ticket;
     }
 
-    void ParkingLot::removeVehicle(const std::string& licensePlate){
-        const auto it = std::find_if(
-            vehicles.begin(), 
-            vehicles.end(), 
-            [&licensePlate](const auto& vehicle){
+
+    /// @brief removes a vehicle based on its license plate
+    /// @param licensePlate license plate of the specified vehicle to be removed
+    void ParkingLot::removeVehicle(const std::string& licensePlate) {
+        // Find the vehicle
+        const auto vehicleIt = std::find_if(
+            vehicles.begin(),
+            vehicles.end(),
+            [&licensePlate](const auto& vehicle) {
                 return vehicle->getLicensePlate() == licensePlate;
             }
         );
-        if(it==vehicles.end()){
+
+        if (vehicleIt == vehicles.end()) {
             throw std::logic_error("This vehicle is not parked in this lot");
         }
-        Vehicles::Vehicle* vehiclePtr = it->get(); 
-        for(auto& spot : spots){
-            if(spot.getVehicle() == vehiclePtr){
-                spot.removeVehicle();
-                break;
-            }
-        }
-        vehicles.erase(it);
 
+        // Find its active ticket
+        const auto ticketIt = std::find_if(
+            activeTickets.begin(),
+            activeTickets.end(),
+            [&licensePlate](const auto& ticket) {
+                return ticket.getLicensePlate() == licensePlate;
+            }
+        );
+
+        if (ticketIt == activeTickets.end()) {
+            throw std::logic_error("There is no active ticket for this vehicle");
+        }
+
+        // Get the vehicle's raw pointer
+        Vehicles::Vehicle* vehiclePtr = vehicleIt->get();
+
+        // Find the corresponding parking spot
+        const auto spotIt = std::find_if(
+            spots.begin(),
+            spots.end(),
+            [vehiclePtr](const auto& spot) {
+                return spot.getVehicle() == vehiclePtr;
+            }
+        );
+
+        if (spotIt == spots.end()) {
+            throw std::logic_error("Vehicle is not assigned to a parking spot");
+        }
+
+        // Clear the parking spot
+        spotIt->removeVehicle();
+
+        // Remove the active ticket
+        activeTickets.erase(ticketIt);
+
+        // Destroy the vehicle
+        vehicles.erase(vehicleIt);
     }
 
     void ParkingLot::displayParkingStatus() const{

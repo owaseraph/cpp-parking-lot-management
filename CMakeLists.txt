@@ -15,6 +15,7 @@ add_library(ParkingCore
     Parking/ParkingSpot.cpp
     Parking/ParkingLot.cpp
     Parking/ParkingTicket.cpp
+    Payments/Payments.cpp
 )
 
 target_include_directories(ParkingCore PUBLIC
@@ -45,5 +46,16 @@ if(BUILD_TESTING)
     add_test(
         NAME ParkingLotTests
         COMMAND ParkingLotTests
+    )
+
+    add_executable(PaymentTests
+        tests/PaymentTests.cpp
+    )
+
+    target_link_libraries(PaymentTests PRIVATE ParkingCore)
+
+    add_test(
+        NAME PaymentTests
+        COMMAND PaymentTests
     )
 endif()
